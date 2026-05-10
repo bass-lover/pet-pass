@@ -69,7 +69,7 @@ app.post('/api/user/login', async (req, res) => {
 
     const token = jwt.sign(
       { userId: user.id, username: user.username },
-      JWT_SECRET,
+      'pet-pass-secret-key-2026',
       { expiresIn: '24h' }
     );
 
@@ -86,6 +86,10 @@ app.post('/api/user/login', async (req, res) => {
 
 const petRouter = require('./routes/pet');
 app.use('/api/pet', petRouter);
+
+//  在这里添加签到路由
+const checkinRouter = require('./routes/checkin');
+app.use('/api/checkin', checkinRouter);
 
 app.listen(PORT, () => {
   console.log(`🚀 服务器运行在 http://localhost:${PORT}`);
