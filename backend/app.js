@@ -18,6 +18,10 @@ pool.getConnection()
   })
   .catch(err => console.error('❌ MySQL连接失败:', err));
 
+// 관리자 라우터 등록 / 注册管理员路由
+const adminRoutes = require('./routes/admin');
+app.use('/api/admin', adminRoutes);
+
 app.post('/api/user/register', async (req, res) => {
   try {
     const { username, password, email } = req.body;
