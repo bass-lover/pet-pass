@@ -9,6 +9,8 @@ import CheckoutPage from './pages/CheckoutPage';
 import MyPage from './pages/MyPage';
 import AdminPage from './pages/AdminPage';
 import DogRegisterPage from './pages/DogRegisterPage';
+import ReviewPage from './pages/ReviewPage';
+import GuidePage from './pages/GuidePage';
 
 function App() {
   return (
@@ -20,7 +22,9 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/checkin" element={<CheckinPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/mypage" element={<MyPage />} />
+	<Route path="/reviews" element={<ReviewPage />} />
+	<Route path="/guide" element={<GuidePage />} />
+	<Route path="/mypage" element={<MyPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/dogs/new" element={<DogRegisterPage />} />
       </Routes>

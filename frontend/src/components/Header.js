@@ -8,6 +8,9 @@ function Header() {
         <Link to="/login">로그인</Link>
         <Link to="/signup">회원가입</Link>
         <Link to="/checkin">체크인</Link>
+	<Link to="/checkout">체크아웃</Link>
+	<Link to="/reviews">후기</Link>
+	<Link to="/guide">이용 안내</Link>
         <Link to="/mypage">마이페이지</Link>
         <Link to="/admin">관리자</Link>
       </nav>
