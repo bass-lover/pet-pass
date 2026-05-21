@@ -4,6 +4,8 @@ const pool = require('./db');
 const { JWT_SECRET } = require('./middleware/auth.js');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const autoCheckoutTask = require('./cron/autoCheckout');
+autoCheckoutTask(); 
 
 const app = express();
 const PORT = 3000;
