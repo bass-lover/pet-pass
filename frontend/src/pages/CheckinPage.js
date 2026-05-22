@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiRequest } from '../services/api';
 import '../styles/Checkin.css';
 
 function CheckinPage() {
@@ -10,11 +11,7 @@ function CheckinPage() {
     { id: 2, name: '반려동물 공원 B', currentUserCount: 2, currentDogCount: 3 },
   ];
 
-  const dogs = [
-    { id: 1, name: '초코', age: 3 },
-    { id: 2, name: '보리', age: 5 },
-  ];
-
+  const [dogs, setDogs] = useState([]);
   const [selectedParkId, setSelectedParkId] = useState('');
   const [selectedDogId, setSelectedDogId] = useState('');
   const [currentCheckin, setCurrentCheckin] = useState(null);
@@ -26,9 +23,22 @@ function CheckinPage() {
     if (savedCheckin) {
       setCurrentCheckin(JSON.parse(savedCheckin));
     }
-  }, []);
 
-  const handleCheckin = () => {
+    const fetchDogs = async () => {
+      try {
+        const data = await apiRequest('/api/pet/my');
+        setDogs(data.data || []);
+      } catch (error) {
+        console.error(error);
+        alert('반려견 목록을 불러오지 못했습니다. 로그인 후 이용해주세요.');
+        navigate('/login');
+      }
+    };
+
+    fetchDogs();
+  }, [navigate]);
+
+  const handleCheckin = async () => {
     setError('');
 
     if (currentCheckin) {
@@ -46,24 +56,40 @@ function CheckinPage() {
       return;
     }
 
-    const selectedPark = parks.find((park) => park.id === Number(selectedParkId));
-    const selectedDog = dogs.find((dog) => dog.id === Number(selectedDogId));
+    try {
+      const selectedPark = parks.find(
+        (park) => park.id === Number(selectedParkId)
+      );
 
-    const checkinData = {
-      checkinId: Date.now(),
-      parkId: selectedPark.id,
-      parkName: selectedPark.name,
-      dogId: selectedDog.id,
-      dogName: selectedDog.name,
-      checkinTime: new Date().toLocaleString(),
-      status: 'IN',
-    };
+      const selectedDog = dogs.find(
+        (dog) => dog.id === Number(selectedDogId)
+      );
 
-    localStorage.setItem('currentCheckin', JSON.stringify(checkinData));
-    setCurrentCheckin(checkinData);
+      const data = await apiRequest('/api/checkin/checkin', {
+        method: 'POST',
+        body: JSON.stringify({
+          petId: Number(selectedDogId),
+        }),
+      });
 
-    alert('체크인이 완료되었습니다.');
-    navigate('/checkout');
+      const checkinData = {
+        checkinId: data.checkinId,
+        parkId: selectedPark.id,
+        parkName: selectedPark.name,
+        dogId: selectedDog.id,
+        dogName: selectedDog.pet_name,
+        checkinTime: new Date().toLocaleString(),
+        status: 'IN',
+      };
+
+      localStorage.setItem('currentCheckin', JSON.stringify(checkinData));
+      setCurrentCheckin(checkinData);
+
+      alert('체크인이 완료되었습니다.');
+      navigate('/checkout');
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   return (
@@ -130,7 +156,7 @@ function CheckinPage() {
             <option value="">반려견을 선택하세요</option>
             {dogs.map((dog) => (
               <option key={dog.id} value={dog.id}>
-                {dog.name} / {dog.age}살
+                {dog.pet_name} / {dog.age || '-'}살
               </option>
             ))}
           </select>

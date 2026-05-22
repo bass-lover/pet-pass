@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiRequest } from '../services/api';
 import '../styles/Checkin.css';
 
 function CheckoutPage() {
@@ -14,31 +15,42 @@ function CheckoutPage() {
     }
   }, []);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!currentCheckin) {
       alert('현재 체크인된 기록이 없습니다.');
       return;
     }
 
-    const checkoutData = {
-      ...currentCheckin,
-      checkoutTime: new Date().toLocaleString(),
-      status: 'OUT',
-    };
+    try {
+      await apiRequest('/api/checkin/checkout', {
+        method: 'POST',
+        body: JSON.stringify({
+          petId: currentCheckin.dogId,
+        }),
+      });
 
-    const savedHistories = localStorage.getItem('checkinHistories');
-    const histories = savedHistories ? JSON.parse(savedHistories) : [];
+      const checkoutData = {
+        ...currentCheckin,
+        checkoutTime: new Date().toLocaleString(),
+        status: 'OUT',
+      };
 
-    localStorage.setItem(
-      'checkinHistories',
-      JSON.stringify([checkoutData, ...histories])
-    );
+      const savedHistories = localStorage.getItem('checkinHistories');
+      const histories = savedHistories ? JSON.parse(savedHistories) : [];
 
-    localStorage.removeItem('currentCheckin');
-    setCurrentCheckin(null);
+      localStorage.setItem(
+        'checkinHistories',
+        JSON.stringify([checkoutData, ...histories])
+      );
 
-    alert('체크아웃이 완료되었습니다.');
-    navigate('/mypage');
+      localStorage.removeItem('currentCheckin');
+      setCurrentCheckin(null);
+
+      alert('체크아웃이 완료되었습니다.');
+      navigate('/mypage');
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   return (

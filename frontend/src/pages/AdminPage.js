@@ -1,80 +1,64 @@
 import { useEffect, useState } from 'react';
+import { apiRequest } from '../services/api';
 import '../styles/Dashboard.css';
 
 function AdminPage() {
-  const [currentCheckin, setCurrentCheckin] = useState(null);
-  const [histories, setHistories] = useState([]);
+  const [records, setRecords] = useState([]);
+  const [currentPetCount, setCurrentPetCount] = useState(0);
+  const [apiStatus, setApiStatus] = useState('loading');
 
   useEffect(() => {
-    const savedCheckin = localStorage.getItem('currentCheckin');
-    const savedHistories = localStorage.getItem('checkinHistories');
+    const fetchAdminData = async () => {
+      try {
+        const currentData = await apiRequest('/api/admin/current-pets');
+        const recordData = await apiRequest('/api/admin/check-records');
 
-    if (savedCheckin) {
-      setCurrentCheckin(JSON.parse(savedCheckin));
-    }
+        const currentCount =
+          currentData?.data?.current_pet_count ??
+          currentData?.current_pet_count ??
+          0;
 
-    if (savedHistories) {
-      setHistories(JSON.parse(savedHistories));
-    }
+        const apiRecords =
+          recordData?.data?.records ??
+          recordData?.records ??
+          [];
+
+        const mappedRecords = apiRecords.map((record) => ({
+          id: record.checkin_id,
+          name: record.username || '사용자',
+          phone: record.username || '-',
+          dogName: record.pet_name || '-',
+          registrationNumber: record.registration_number || '-',
+          parkName: '반려동물 공원',
+          checkinTime: formatDateTime(record.checkin_time),
+          checkoutTime: record.checkout_time ? formatDateTime(record.checkout_time) : '-',
+          status: record.status === 'checked_in' ? 'IN' : 'OUT',
+        }));
+
+        setCurrentPetCount(currentCount);
+        setRecords(mappedRecords);
+        setApiStatus('success');
+      } catch (error) {
+        console.error('관리자 API 호출 실패:', error);
+        setApiStatus('error');
+        alert('관리자 데이터를 불러오지 못했습니다.');
+      }
+    };
+
+    fetchAdminData();
   }, []);
 
-  const dummyRecords = [
-    {
-      id: 1,
-      name: '홍길동',
-      phone: '010-1234-5678',
-      dogName: '초코',
-      registrationNumber: 'ABC****1234',
-      parkName: '반려동물 공원 A',
-      checkinTime: '2026-04-30 10:00',
-      checkoutTime: '2026-04-30 11:20',
-      status: 'OUT',
-    },
-    {
-      id: 2,
-      name: '김철수',
-      phone: '010-2222-3333',
-      dogName: '보리',
-      registrationNumber: 'DEF****5678',
-      parkName: '반려동물 공원 B',
-      checkinTime: '2026-04-30 13:10',
-      checkoutTime: '-',
-      status: 'IN',
-    },
-  ];
+  const formatDateTime = (dateValue) => {
+    if (!dateValue) return '-';
 
-  const currentRecord = currentCheckin
-    ? [
-        {
-          id: currentCheckin.checkinId,
-          name: '현재 사용자',
-          phone: '010-0000-0000',
-          dogName: currentCheckin.dogName,
-          registrationNumber: 'TEST****0000',
-          parkName: currentCheckin.parkName,
-          checkinTime: currentCheckin.checkinTime,
-          checkoutTime: '-',
-          status: 'IN',
-        },
-      ]
-    : [];
+    const date = new Date(dateValue);
 
-  const historyRecords = histories.map((history) => ({
-    id: history.checkinId,
-    name: '현재 사용자',
-    phone: '010-0000-0000',
-    dogName: history.dogName,
-    registrationNumber: 'TEST****0000',
-    parkName: history.parkName,
-    checkinTime: history.checkinTime,
-    checkoutTime: history.checkoutTime || '-',
-    status: history.status,
-  }));
+    if (Number.isNaN(date.getTime())) {
+      return String(dateValue);
+    }
 
-  const records = [...currentRecord, ...historyRecords, ...dummyRecords];
-
-  const currentInCount = records.filter((record) => record.status === 'IN').length;
-  const totalDogCount = currentInCount;
+    return date.toLocaleString();
+  };
 
   const handleCsvDownload = () => {
     const header = [
@@ -96,14 +80,14 @@ function AdminPage() {
       record.parkName,
       record.checkinTime,
       record.checkoutTime,
-      record.status,
+      record.status === 'IN' ? '입장 중' : '퇴장 완료',
     ]);
 
     const csvContent = [header, ...rows]
-      .map((row) => row.join(','))
+      .map((row) => row.map((value) => `"${value}"`).join(','))
       .join('\n');
 
-    const blob = new Blob([csvContent], {
+    const blob = new Blob(['\uFEFF' + csvContent], {
       type: 'text/csv;charset=utf-8;',
     });
 
@@ -117,6 +101,9 @@ function AdminPage() {
     URL.revokeObjectURL(url);
   };
 
+  const currentInCount = records.filter((record) => record.status === 'IN').length;
+  const totalDogCount = currentPetCount || currentInCount;
+
   return (
     <main className="dashboard-container">
       <section className="admin-header">
@@ -125,9 +112,27 @@ function AdminPage() {
           <p>
             공원 이용 현황과 출입 기록을 조회하고 CSV 파일로 다운로드할 수 있습니다.
           </p>
+
+          {apiStatus === 'loading' && (
+            <p className="section-description">관리자 데이터를 불러오는 중입니다.</p>
+          )}
+
+          {apiStatus === 'success' && (
+            <p className="section-description">백엔드 API 데이터가 연결된 상태입니다.</p>
+          )}
+
+          {apiStatus === 'error' && (
+            <p className="section-description">
+              관리자 데이터를 불러오지 못했습니다. 백엔드 서버와 DB 상태를 확인해주세요.
+            </p>
+          )}
         </div>
 
-        <button className="primary-button" onClick={handleCsvDownload}>
+        <button
+          className="primary-button"
+          onClick={handleCsvDownload}
+          disabled={records.length === 0}
+        >
           CSV 다운로드
         </button>
       </section>
@@ -171,28 +176,34 @@ function AdminPage() {
             </thead>
 
             <tbody>
-              {records.map((record) => (
-                <tr key={record.id}>
-                  <td>{record.name}</td>
-                  <td>{record.phone}</td>
-                  <td>{record.dogName}</td>
-                  <td>{record.registrationNumber}</td>
-                  <td>{record.parkName}</td>
-                  <td>{record.checkinTime}</td>
-                  <td>{record.checkoutTime}</td>
-                  <td>
-                    <span
-                      className={
-                        record.status === 'IN'
-                          ? 'status-label status-in'
-                          : 'status-label status-out'
-                      }
-                    >
-                      {record.status === 'IN' ? '입장 중' : '퇴장 완료'}
-                    </span>
-                  </td>
+              {records.length === 0 ? (
+                <tr>
+                  <td colSpan="8">출입 기록이 없습니다.</td>
                 </tr>
-              ))}
+              ) : (
+                records.map((record) => (
+                  <tr key={record.id}>
+                    <td>{record.name}</td>
+                    <td>{record.phone}</td>
+                    <td>{record.dogName}</td>
+                    <td>{record.registrationNumber}</td>
+                    <td>{record.parkName}</td>
+                    <td>{record.checkinTime}</td>
+                    <td>{record.checkoutTime}</td>
+                    <td>
+                      <span
+                        className={
+                          record.status === 'IN'
+                            ? 'status-label status-in'
+                            : 'status-label status-out'
+                        }
+                      >
+                        {record.status === 'IN' ? '입장 중' : '퇴장 완료'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

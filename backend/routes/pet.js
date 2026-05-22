@@ -1,35 +1,66 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-// 这里已经改成了正确的名字 verifyToken
 const { verifyToken } = require('../middleware/auth');
 
-// 宠物注册接口
+// 반려견 등록
 router.post('/register', verifyToken, async (req, res) => {
   try {
     const { pet_name, type, age, description } = req.body;
-    const user_id = req.user.id;
+    const user_id = req.user.userId;
 
     if (!pet_name || !type) {
-      return res.status(400).json({ message: '宠物名字和类型不能为空' });
+      return res.status(400).json({
+        success: false,
+        message: '반려견 이름과 종류를 입력해주세요.',
+      });
     }
 
     const [result] = await pool.execute(
-      `INSERT INTO pet (user_id, pet_name, type, age, description)
+      `INSERT INTO pet (user_id, pet_name, type, age, description) 
        VALUES (?, ?, ?, ?, ?)`,
       [user_id, pet_name, type, age || null, description || null]
     );
 
-    res.status(201).json({
-      message: '宠物信息创建成功',
-      petId: result.insertId
+    return res.status(201).json({
+      success: true,
+      message: '반려견 정보가 등록되었습니다.',
+      petId: result.insertId,
     });
   } catch (error) {
-    console.error('宠物注册错误:', error);
-    res.status(500).json({ message: '宠物注册失败' });
+    console.error('반려견 등록 오류:', error);
+    return res.status(500).json({
+      success: false,
+      message: '반려견 등록 처리 중 서버 오류가 발생했습니다.',
+    });
   }
 });
 
-// 其他宠物接口...
+// 내 반려견 목록 조회
+router.get('/my', verifyToken, async (req, res) => {
+  try {
+    const user_id = req.user.userId;
+
+    const [pets] = await pool.execute(
+      `SELECT id, pet_name, type, age, description, status
+       FROM pet
+       WHERE user_id = ?
+       ORDER BY id DESC`,
+      [user_id]
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: '반려견 목록 조회 성공',
+      data: pets,
+    });
+  } catch (error) {
+    console.error('반려견 목록 조회 오류:', error);
+    return res.status(500).json({
+      success: false,
+      message: '반려견 목록 조회 중 서버 오류가 발생했습니다.',
+    });
+  }
+});
 
 module.exports = router;

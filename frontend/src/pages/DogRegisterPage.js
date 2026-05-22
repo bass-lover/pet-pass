@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiRequest } from '../services/api';
 import '../styles/MyPage.css';
 
 function DogRegisterPage() {
@@ -42,7 +43,7 @@ function DogRegisterPage() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = validate();
@@ -52,16 +53,22 @@ function DogRegisterPage() {
       return;
     }
 
-    const dogData = {
-      dogName: form.dogName,
-      dogAge: Number(form.dogAge),
-      registrationNumber: form.registrationNumber,
-    };
+    try {
+      await apiRequest('/api/pet/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          pet_name: form.dogName,
+          type: 'dog',
+          age: Number(form.dogAge),
+          description: form.registrationNumber,
+        }),
+      });
 
-    console.log('반려견 등록 데이터:', dogData);
-
-    alert('반려견 등록 검증 통과');
-    navigate('/mypage');
+      alert('반려견 등록 성공');
+      navigate('/mypage');
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   return (

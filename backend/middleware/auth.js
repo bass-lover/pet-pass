@@ -1,22 +1,71 @@
 const jwt = require('jsonwebtoken');
-// 和登录接口里的密钥保持一致
-const JWT_SECRET = 'pet-pass-secret-key-2026';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'pet-pass-secret-key-2026';
+
+// 관리자 계정 전화번호
+const ADMIN_USERNAMES = ['01000000000'];
+
+const getUserRole = (username) => {
+  if (ADMIN_USERNAMES.includes(username)) {
+    return 'admin';
+  }
+
+  return 'user';
+};
 
 const verifyToken = (req, res, next) => {
+  try {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: '未登录或Token无效' });
+
+    if (!authHeader) {
+      return res.status(401).json({
+        success: false,
+        message: '로그인이 필요합니다.',
+      });
     }
 
     const token = authHeader.split(' ')[1];
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        // 这里给 req.user 赋值 userId，和控制器里的字段名完全对应
-        req.user = { userId: decoded.userId };
-        next();
-    } catch (err) {
-        return res.status(401).json({ message: 'Token验证失败，请重新登录' });
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: '토큰이 없습니다.',
+      });
     }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: '유효하지 않은 토큰입니다.',
+    });
+  }
 };
 
-module.exports = { verifyToken };
+const verifyAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: '로그인이 필요합니다.',
+    });
+  }
+
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: '관리자만 접근할 수 있습니다.',
+    });
+  }
+
+  next();
+};
+
+module.exports = {
+  JWT_SECRET,
+  verifyToken,
+  verifyAdmin,
+  getUserRole,
+};
