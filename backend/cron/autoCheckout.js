@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const db = require('../db'); // 确认你的数据库连接文件路径正确
+const db = require('../config/db'); // 确认你的数据库连接文件路径正确
 
 const autoCheckoutTask = () => {
  cron.schedule('0 0 2 * * *', async () => {

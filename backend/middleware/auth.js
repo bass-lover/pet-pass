@@ -12,7 +12,7 @@ const verifyToken = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
         // 这里给 req.user 赋值 userId，和控制器里的字段名完全对应
-        req.user = { userId: decoded.userId };
+        req.user = { userId: decoded.id };
         next();
     } catch (err) {
         return res.status(401).json({ message: 'Token验证失败，请重新登录' });

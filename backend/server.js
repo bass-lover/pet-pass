@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt');
 const mysql = require('mysql2/promise');
 const app = express();
 const PORT = 3001;
+const petRouter = require('./routes/pet');
+const checkinRouter = require('./routes/checkin');
 
 // 解析 JSON 请求体
 app.use(express.json());// JWT 验证中间件
@@ -120,7 +122,7 @@ app.post('/api/users/register', async (req, res) => {
 });
 
 const jwt = require('jsonwebtoken');
-const SECRET_KEY = 'your-secret-key-keep-it-safe'; // 建议改成复杂的随机字符串
+const SECRET_KEY = 'pet-pass-secret-key-2026'; // 建议改成复杂的随机字符串
 
 // 登录接口
 app.post('/api/users/login', async (req, res) => {
@@ -182,6 +184,12 @@ app.post('/api/users/login', async (req, res) => {
     });
   }
 });
+
+app.use('/api/pets', petRouter);
+// 在这里加签到路由挂载
+app.use('/api/checkin', checkinRouter);
+
+
 // 兜底 404
 app.use((req, res) => {
   res.status(404).json({

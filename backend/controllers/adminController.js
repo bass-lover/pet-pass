@@ -1,5 +1,5 @@
 // 注意：把这里改成你项目里实际的数据库连接文件路径！
-const db = require('../db'); 
+const db = require('../config/db'); 
 
 // 현재 이용자(반려견) 수 조회 / 查询当前在园宠物数量
 exports.getCurrentPets = async (req, res) => {
