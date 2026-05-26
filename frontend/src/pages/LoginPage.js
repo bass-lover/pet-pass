@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiRequest } from '../services/api';
 import '../styles/Auth.css';
 
 function LoginPage() {
@@ -39,7 +40,7 @@ function LoginPage() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = validate();
@@ -49,9 +50,23 @@ function LoginPage() {
       return;
     }
 
-    console.log('로그인 요청 데이터:', form);
-    alert('로그인 검증 통과');
-    navigate('/');
+    try {
+      const data = await apiRequest('/api/user/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          username: form.phone,
+          password: form.password,
+        }),
+      });
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      alert('로그인 성공');
+      navigate('/');
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   return (

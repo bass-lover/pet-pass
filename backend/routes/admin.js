@@ -1,12 +1,23 @@
 const express = require('express');
 const router = express.Router();
-// 控制器引用（确保路径和文件名完全匹配）
+
 const adminController = require('../controllers/adminController');
+const { verifyToken, verifyAdmin } = require('../middleware/auth');
 
-// 1. 当前在园宠物数量接口
-router.get('/current-pets', adminController.getCurrentPets);
+// 현재 공원 이용 중인 반려견 수 조회
+router.get(
+  '/current-pets',
+  verifyToken,
+  verifyAdmin,
+  adminController.getCurrentPets
+);
 
-// 2. 签到记录查询接口
-router.get('/check-records', adminController.getCheckRecords);
+// 체크인/체크아웃 기록 조회
+router.get(
+  '/check-records',
+  verifyToken,
+  verifyAdmin,
+  adminController.getCheckRecords
+);
 
 module.exports = router;

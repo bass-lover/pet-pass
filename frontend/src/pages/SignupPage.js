@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiRequest } from '../services/api';
 import '../styles/Auth.css';
 
 function SignupPage() {
@@ -10,9 +11,6 @@ function SignupPage() {
     phone: '',
     password: '',
     passwordConfirm: '',
-    dogName: '',
-    dogAge: '',
-    registrationNumber: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -51,24 +49,10 @@ function SignupPage() {
       newErrors.passwordConfirm = '비밀번호가 일치하지 않습니다.';
     }
 
-    if (!form.dogName.trim()) {
-      newErrors.dogName = '반려견 이름을 입력해주세요.';
-    }
-
-    if (!form.dogAge.trim()) {
-      newErrors.dogAge = '반려견 나이를 입력해주세요.';
-    } else if (isNaN(form.dogAge) || Number(form.dogAge) < 0) {
-      newErrors.dogAge = '반려견 나이는 0 이상의 숫자로 입력해주세요.';
-    }
-
-    if (!form.registrationNumber.trim()) {
-      newErrors.registrationNumber = '등록번호를 입력해주세요.';
-    }
-
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = validate();
@@ -78,18 +62,22 @@ function SignupPage() {
       return;
     }
 
-    const requestData = {
-      name: form.name,
-      phone: form.phone,
-      password: form.password,
-      dogName: form.dogName,
-      dogAge: Number(form.dogAge),
-      registrationNumber: form.registrationNumber,
-    };
+    try {
+      await apiRequest('/api/user/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          username: form.phone,
+          password: form.password,
+        }),
+      });
 
-    console.log('회원가입 요청 데이터:', requestData);
-    alert('회원가입 검증 통과');
-    navigate('/login');
+      localStorage.setItem('tempName', form.name);
+
+      alert('회원가입 성공. 로그인 후 반려견 정보를 등록해주세요.');
+      navigate('/login');
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   return (
@@ -97,7 +85,7 @@ function SignupPage() {
       <div className="auth-card">
         <h1 className="auth-title">회원가입</h1>
         <p className="auth-description">
-          보호자 정보와 반려견 정보를 입력하여 회원가입합니다.
+          보호자 정보를 입력하여 회원가입합니다. 반려견 정보는 로그인 후 등록할 수 있습니다.
         </p>
 
         <form className="auth-form" onSubmit={handleSubmit}>
@@ -152,47 +140,6 @@ function SignupPage() {
             />
             {errors.passwordConfirm && (
               <p className="error-text">{errors.passwordConfirm}</p>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="dogName">반려견 이름</label>
-            <input
-              id="dogName"
-              name="dogName"
-              type="text"
-              placeholder="반려견 이름 입력"
-              value={form.dogName}
-              onChange={handleChange}
-            />
-            {errors.dogName && <p className="error-text">{errors.dogName}</p>}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="dogAge">반려견 나이</label>
-            <input
-              id="dogAge"
-              name="dogAge"
-              type="number"
-              placeholder="반려견 나이 입력"
-              value={form.dogAge}
-              onChange={handleChange}
-            />
-            {errors.dogAge && <p className="error-text">{errors.dogAge}</p>}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="registrationNumber">등록번호</label>
-            <input
-              id="registrationNumber"
-              name="registrationNumber"
-              type="text"
-              placeholder="등록번호 입력"
-              value={form.registrationNumber}
-              onChange={handleChange}
-            />
-            {errors.registrationNumber && (
-              <p className="error-text">{errors.registrationNumber}</p>
             )}
           </div>
 

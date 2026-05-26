@@ -1,32 +1,72 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiRequest } from '../services/api';
 import '../styles/MyPage.css';
 
 function MyPage() {
   const navigate = useNavigate();
 
-  const user = {
-    name: '홍길동',
-    phone: '010-1234-5678',
+  const [dogs, setDogs] = useState([]);
+  const [histories, setHistories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const userData = localStorage.getItem('user');
+  const user = userData ? JSON.parse(userData) : null;
+
+  useEffect(() => {
+    const fetchMyPageData = async () => {
+      try {
+        const dogData = await apiRequest('/api/pet/my');
+        setDogs(dogData.data || []);
+
+        const historyData = await apiRequest('/api/checkin/my-records');
+        setHistories(historyData.data?.records || []);
+      } catch (error) {
+        console.error('마이페이지 데이터 조회 실패:', error);
+        alert('마이페이지 정보를 불러오지 못했습니다. 다시 로그인해주세요.');
+        navigate('/login');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMyPageData();
+  }, [navigate]);
+
+  const formatDateTime = (dateValue) => {
+    if (!dateValue) return '-';
+
+    const date = new Date(dateValue);
+
+    if (Number.isNaN(date.getTime())) {
+      return String(dateValue);
+    }
+
+    return date.toLocaleString();
   };
 
-  const dogs = [
-    {
-      id: 1,
-      dogName: '초코',
-      dogAge: 3,
-      registrationNumber: 'ABC****1234',
-    },
-  ];
+  const getStatusText = (status) => {
+    if (status === 'checked_in') {
+      return '입장 중';
+    }
 
-  const histories = [
-    {
-      id: 1,
-      parkName: '반려동물 공원 A',
-      checkinTime: '2026-04-10 14:00',
-      checkoutTime: '2026-04-10 15:20',
-      status: '퇴장 완료',
-    },
-  ];
+    if (status === 'checked_out') {
+      return '퇴장 완료';
+    }
+
+    return status || '-';
+  };
+
+  if (loading) {
+    return (
+      <main className="mypage-container">
+        <section className="mypage-card">
+          <h1>마이페이지</h1>
+          <p className="page-description">정보를 불러오는 중입니다.</p>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="mypage-container">
@@ -37,13 +77,15 @@ function MyPage() {
 
       <section className="mypage-card">
         <h2>내 정보</h2>
-        <div className="info-row">
-          <span>이름</span>
-          <strong>{user.name}</strong>
-        </div>
+
         <div className="info-row">
           <span>전화번호</span>
-          <strong>{user.phone}</strong>
+          <strong>{user?.username || '-'}</strong>
+        </div>
+
+        <div className="info-row">
+          <span>권한</span>
+          <strong>{user?.role === 'admin' ? '관리자' : '일반 사용자'}</strong>
         </div>
       </section>
 
@@ -64,9 +106,10 @@ function MyPage() {
           <div className="dog-list">
             {dogs.map((dog) => (
               <div className="dog-item" key={dog.id}>
-                <h3>{dog.dogName}</h3>
-                <p>나이: {dog.dogAge}살</p>
-                <p>등록번호: {dog.registrationNumber}</p>
+                <h3>{dog.pet_name}</h3>
+                <p>나이: {dog.age || '-'}살</p>
+                <p>종류: {dog.type || 'dog'}</p>
+                <p>등록번호: {dog.description || '-'}</p>
               </div>
             ))}
           </div>
@@ -82,19 +125,20 @@ function MyPage() {
           <table className="history-table">
             <thead>
               <tr>
-                <th>공원명</th>
+                <th>반려견</th>
                 <th>입장 시간</th>
                 <th>퇴장 시간</th>
                 <th>상태</th>
               </tr>
             </thead>
+
             <tbody>
               {histories.map((history) => (
-                <tr key={history.id}>
-                  <td>{history.parkName}</td>
-                  <td>{history.checkinTime}</td>
-                  <td>{history.checkoutTime}</td>
-                  <td>{history.status}</td>
+                <tr key={history.checkin_id}>
+                  <td>{history.pet_name || '-'}</td>
+                  <td>{formatDateTime(history.checkin_time)}</td>
+                  <td>{formatDateTime(history.checkout_time)}</td>
+                  <td>{getStatusText(history.status)}</td>
                 </tr>
               ))}
             </tbody>

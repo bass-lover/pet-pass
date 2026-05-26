@@ -1,16 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/auth');
-const pool = require('../config/db'); // 确保路径正确
+const pool = require('../config/db');
 
-// 签到接口
+// 签到接口（兼容 id 和 userId 两种字段）
 router.post('/checkin', verifyToken, async (req, res) => {
   try {
     const { pet_id } = req.body;
-    const user_id = req.user.userId;
+    // 关键修复：同时兼容 id 和 userId
+    const user_id = req.user.userId || req.user.id;
 
     if (!pet_id || !user_id) {
-      return res.status(400).json({ success: false, message: 'pet_id 和 user_id 不能为空' });
+      return res.status(400).json({
+        success: false,
+        message: 'pet_id 和 user_id 不能为空'
+      });
     }
 
     const [result] = await pool.execute(
@@ -26,18 +30,24 @@ router.post('/checkin', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error('签到错误:', error);
-    res.status(500).json({ success: false, message: '服务器错误' });
+    res.status(500).json({
+      success: false,
+      message: '服务器错误'
+    });
   }
 });
 
-// 签退接口（如果需要的话）
+// 签退接口（同样兼容两种字段）
 router.post('/checkout', verifyToken, async (req, res) => {
   try {
     const { pet_id } = req.body;
-    const user_id = req.user.userId;
+    const user_id = req.user.userId || req.user.id;
 
     if (!pet_id || !user_id) {
-      return res.status(400).json({ success: false, message: 'pet_id 和 user_id 不能为空' });
+      return res.status(400).json({
+        success: false,
+        message: 'pet_id 和 user_id 不能为空'
+      });
     }
 
     const [result] = await pool.execute(
@@ -48,13 +58,22 @@ router.post('/checkout', verifyToken, async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(400).json({ success: false, message: '未找到有效的签到记录，无法签退' });
+      return res.status(400).json({
+        success: false,
+        message: '未找到有效的签到记录，无法签退'
+      });
     }
 
-    res.status(200).json({ success: true, message: '签退成功' });
+    res.status(200).json({
+      success: true,
+      message: '签退成功'
+    });
   } catch (error) {
     console.error('签退错误:', error);
-    res.status(500).json({ success: false, message: '服务器错误' });
+    res.status(500).json({
+      success: false,
+      message: '服务器错误'
+    });
   }
 });
 
