@@ -7,8 +7,36 @@ function CheckinPage() {
   const navigate = useNavigate();
 
   const parks = [
-    { id: 1, name: '반려동물 공원 A', currentUserCount: 5, currentDogCount: 7 },
-    { id: 2, name: '반려동물 공원 B', currentUserCount: 2, currentDogCount: 3 },
+    {
+      id: 1,
+      name: '원적산공원 반려동물놀이터',
+      currentUserCount: 1,
+      currentDogCount: 1,
+    },
+    {
+      id: 2,
+      name: '인천대공원 반려동물 놀이터',
+      currentUserCount: 2,
+      currentDogCount: 2,
+    },
+    {
+      id: 3,
+      name: '송도달빛축제공원 송도 도그파크',
+      currentUserCount: 2,
+      currentDogCount: 2,
+    },
+    {
+      id: 4,
+      name: '혜윰공원 반려견놀이터',
+      currentUserCount: 1,
+      currentDogCount: 1,
+    },
+    {
+      id: 5,
+      name: '계양꽃마루 반려견쉼터',
+      currentUserCount: 1,
+      currentDogCount: 1,
+    },
   ];
 
   const [dogs, setDogs] = useState([]);
@@ -61,9 +89,7 @@ function CheckinPage() {
         (park) => park.id === Number(selectedParkId)
       );
 
-      const selectedDog = dogs.find(
-        (dog) => dog.id === Number(selectedDogId)
-      );
+      const selectedDog = dogs.find((dog) => dog.id === Number(selectedDogId));
 
       const data = await apiRequest('/api/checkin/checkin', {
         method: 'POST',
@@ -141,6 +167,9 @@ function CheckinPage() {
                 <div key={park.id}>
                   <p>현재 이용자 수: {park.currentUserCount}명</p>
                   <p>현재 반려견 수: {park.currentDogCount}마리</p>
+                  <p style={{ color: '#666', fontSize: '13px' }}>
+                    ※ 현재 이용 현황은 시연용 가상 데이터입니다.
+                  </p>
                 </div>
               ))}
           </div>
