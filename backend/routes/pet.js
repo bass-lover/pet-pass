@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
+
 const pool = require('../db');
 const { verifyToken } = require('../middleware/auth');
+const { encryptText, decryptText } = require('../utils/cryptoUtil');
 
 // 반려견 등록
 router.post('/register', verifyToken, async (req, res) => {
@@ -16,10 +18,14 @@ router.post('/register', verifyToken, async (req, res) => {
       });
     }
 
+    const encryptedDescription = description
+      ? encryptText(description)
+      : null;
+
     const [result] = await pool.execute(
-      `INSERT INTO pet (user_id, pet_name, type, age, description) 
+      `INSERT INTO pet (user_id, pet_name, type, age, description)
        VALUES (?, ?, ?, ?, ?)`,
-      [user_id, pet_name, type, age || null, description || null]
+      [user_id, pet_name, type, age || null, encryptedDescription]
     );
 
     return res.status(201).json({
@@ -49,10 +55,15 @@ router.get('/my', verifyToken, async (req, res) => {
       [user_id]
     );
 
+    const decryptedPets = pets.map((pet) => ({
+      ...pet,
+      description: decryptText(pet.description),
+    }));
+
     return res.status(200).json({
       success: true,
       message: '반려견 목록 조회 성공',
-      data: pets,
+      data: decryptedPets,
     });
   } catch (error) {
     console.error('반려견 목록 조회 오류:', error);

@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { decryptText } = require('../utils/cryptoUtil');
 
 // 현재 입장 중인 반려견 수 및 목록 조회
 exports.getCurrentPets = async (req, res) => {
@@ -10,7 +11,7 @@ exports.getCurrentPets = async (req, res) => {
     );
 
     const [currentPets] = await pool.query(
-      `SELECT 
+      `SELECT
           pc.checkin_id,
           pc.pet_id,
           pc.user_id,
@@ -29,12 +30,17 @@ exports.getCurrentPets = async (req, res) => {
        ORDER BY pc.checkin_time DESC`
     );
 
+    const decryptedCurrentPets = currentPets.map((pet) => ({
+      ...pet,
+      registration_number: decryptText(pet.registration_number),
+    }));
+
     return res.status(200).json({
       success: true,
       message: '현재 이용 현황 조회 성공',
       data: {
         current_pet_count: countRows[0].current_pet_count,
-        current_pets: currentPets,
+        current_pets: decryptedCurrentPets,
       },
     });
   } catch (error) {
@@ -50,7 +56,7 @@ exports.getCurrentPets = async (req, res) => {
 exports.getCheckRecords = async (req, res) => {
   try {
     const [records] = await pool.query(
-      `SELECT 
+      `SELECT
           pc.checkin_id,
           pc.pet_id,
           pc.user_id,
@@ -70,11 +76,16 @@ exports.getCheckRecords = async (req, res) => {
        ORDER BY pc.checkin_time DESC`
     );
 
+    const decryptedRecords = records.map((record) => ({
+      ...record,
+      registration_number: decryptText(record.registration_number),
+    }));
+
     return res.status(200).json({
       success: true,
       message: '출입 기록 조회 성공',
       data: {
-        records,
+        records: decryptedRecords,
       },
     });
   } catch (error) {

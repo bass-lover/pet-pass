@@ -4,11 +4,11 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const pool = require('./db');
-const { JWT_SECRET, getUserRole } = require('./middleware/auth.js');
+const { JWT_SECRET } = require('./middleware/auth.js');
 const autoCheckoutTask = require('./cron/autoCheckout');
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // 자동 체크아웃 작업 실행
 autoCheckoutTask();
@@ -57,8 +57,8 @@ app.post('/api/user/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await pool.execute(
-      'INSERT INTO user (username, password) VALUES (?, ?)',
-      [username, hashedPassword]
+      'INSERT INTO user (username, password, role) VALUES (?, ?, ?)',
+      [username, hashedPassword, 'user']
     );
 
     return res.status(201).json({
@@ -109,7 +109,7 @@ app.post('/api/user/login', async (req, res) => {
       });
     }
 
-    const role = getUserRole(user.username);
+    const role = user.role || 'user';
 
     const token = jwt.sign(
       {

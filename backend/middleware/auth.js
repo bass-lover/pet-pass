@@ -2,17 +2,6 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'pet-pass-secret-key-2026';
 
-// 관리자 계정 전화번호
-const ADMIN_USERNAMES = ['01000000000'];
-
-const getUserRole = (username) => {
-  if (ADMIN_USERNAMES.includes(username)) {
-    return 'admin';
-  }
-
-  return 'user';
-};
-
 const verifyToken = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -67,5 +56,4 @@ module.exports = {
   JWT_SECRET,
   verifyToken,
   verifyAdmin,
-  getUserRole,
 };
