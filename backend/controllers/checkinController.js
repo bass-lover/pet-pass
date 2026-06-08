@@ -2,13 +2,20 @@ const pool = require('../db');
 
 // 체크인
 exports.checkin = async (req, res) => {
-  const { petId } = req.body;
+  const { petId, parkName } = req.body;
   const userId = req.user.userId;
 
   if (!petId) {
     return res.status(400).json({
       success: false,
       message: '반려견을 선택해주세요.',
+    });
+  }
+
+  if (!parkName) {
+    return res.status(400).json({
+      success: false,
+      message: '공원을 선택해주세요.',
     });
   }
 
@@ -28,9 +35,9 @@ exports.checkin = async (req, res) => {
     }
 
     const [result] = await pool.query(
-      `INSERT INTO pet_checkin (pet_id, user_id, checkin_time, status)
-       VALUES (?, ?, NOW(), 'checked_in')`,
-      [petId, userId]
+      `INSERT INTO pet_checkin (pet_id, user_id, park_name, checkin_time, status)
+       VALUES (?, ?, ?, NOW(), 'checked_in')`,
+      [petId, userId, parkName]
     );
 
     return res.status(201).json({
@@ -133,6 +140,7 @@ exports.getMyCheckRecords = async (req, res) => {
           pc.checkin_id,
           pc.pet_id,
           pc.user_id,
+          pc.park_name,
           pc.checkin_time,
           pc.checkout_time,
           pc.status,

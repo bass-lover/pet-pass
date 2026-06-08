@@ -95,6 +95,7 @@ function CheckinPage() {
         method: 'POST',
         body: JSON.stringify({
           petId: Number(selectedDogId),
+          parkName: selectedPark.name,
         }),
       });
 
