@@ -62,7 +62,6 @@ function LoginPage() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      alert('로그인 성공');
       navigate('/');
     } catch (error) {
       alert(error.message);

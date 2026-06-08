@@ -111,7 +111,6 @@ function CheckinPage() {
       localStorage.setItem('currentCheckin', JSON.stringify(checkinData));
       setCurrentCheckin(checkinData);
 
-      alert('체크인이 완료되었습니다.');
       navigate('/checkout');
     } catch (error) {
       alert(error.message);

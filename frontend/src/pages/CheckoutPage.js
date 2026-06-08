@@ -29,24 +29,9 @@ function CheckoutPage() {
         }),
       });
 
-      const checkoutData = {
-        ...currentCheckin,
-        checkoutTime: new Date().toLocaleString(),
-        status: 'OUT',
-      };
-
-      const savedHistories = localStorage.getItem('checkinHistories');
-      const histories = savedHistories ? JSON.parse(savedHistories) : [];
-
-      localStorage.setItem(
-        'checkinHistories',
-        JSON.stringify([checkoutData, ...histories])
-      );
-
       localStorage.removeItem('currentCheckin');
       setCurrentCheckin(null);
 
-      alert('체크아웃이 완료되었습니다.');
       navigate('/mypage');
     } catch (error) {
       alert(error.message);

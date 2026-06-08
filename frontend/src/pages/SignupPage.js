@@ -73,7 +73,6 @@ function SignupPage() {
 
       localStorage.setItem('tempName', form.name);
 
-      alert('회원가입 성공. 로그인 후 반려견 정보를 등록해주세요.');
       navigate('/login');
     } catch (error) {
       alert(error.message);

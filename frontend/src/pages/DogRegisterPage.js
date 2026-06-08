@@ -38,6 +38,9 @@ function DogRegisterPage() {
 
     if (!form.registrationNumber.trim()) {
       newErrors.registrationNumber = '동물등록번호를 입력해주세요.';
+    } else if (!/^410\d{12}$/.test(form.registrationNumber)) {
+      newErrors.registrationNumber =
+        '동물등록번호는 410으로 시작하는 15자리 숫자로 입력해주세요.';
     }
 
     return newErrors;
@@ -64,7 +67,6 @@ function DogRegisterPage() {
         }),
       });
 
-      alert('반려견 등록 성공');
       navigate('/mypage');
     } catch (error) {
       alert(error.message);
@@ -112,7 +114,7 @@ function DogRegisterPage() {
               id="registrationNumber"
               name="registrationNumber"
               type="text"
-              placeholder="동물등록번호 입력"
+              placeholder="예: 410123456789012"
               value={form.registrationNumber}
               onChange={handleChange}
             />

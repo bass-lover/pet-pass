@@ -22,7 +22,6 @@ function Header() {
     localStorage.removeItem('user');
     localStorage.removeItem('currentCheckin');
 
-    alert('로그아웃되었습니다.');
     navigate('/login');
   };
 
