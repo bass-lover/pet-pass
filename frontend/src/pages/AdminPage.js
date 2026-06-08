@@ -25,13 +25,14 @@ function AdminPage() {
 
         const mappedRecords = apiRecords.map((record) => ({
           id: record.checkin_id,
-          name: record.username || '사용자',
           phone: record.username || '-',
           dogName: record.pet_name || '-',
           registrationNumber: record.registration_number || '-',
-          parkName: '반려동물 공원',
+          parkName: record.park_name || '반려동물 공원',
           checkinTime: formatDateTime(record.checkin_time),
-          checkoutTime: record.checkout_time ? formatDateTime(record.checkout_time) : '-',
+          checkoutTime: record.checkout_time
+            ? formatDateTime(record.checkout_time)
+            : '-',
           status: record.status === 'checked_in' ? 'IN' : 'OUT',
         }));
 
@@ -62,7 +63,6 @@ function AdminPage() {
 
   const handleCsvDownload = () => {
     const header = [
-      '이름',
       '전화번호',
       '반려견 이름',
       '등록번호',
@@ -73,7 +73,6 @@ function AdminPage() {
     ];
 
     const rows = records.map((record) => [
-      record.name,
       record.phone,
       record.dogName,
       record.registrationNumber,
@@ -114,11 +113,15 @@ function AdminPage() {
           </p>
 
           {apiStatus === 'loading' && (
-            <p className="section-description">관리자 데이터를 불러오는 중입니다.</p>
+            <p className="section-description">
+              관리자 데이터를 불러오는 중입니다.
+            </p>
           )}
 
           {apiStatus === 'success' && (
-            <p className="section-description">백엔드 API 데이터가 연결된 상태입니다.</p>
+            <p className="section-description">
+              백엔드 API 데이터가 연결된 상태입니다.
+            </p>
           )}
 
           {apiStatus === 'error' && (
@@ -157,14 +160,13 @@ function AdminPage() {
       <section className="dashboard-section">
         <h2>출입 기록 조회</h2>
         <p className="section-description">
-          관리자만 보호자 정보, 등록번호 등 상세 출입 정보를 확인할 수 있습니다.
+          관리자는 전화번호, 반려견 정보, 등록번호, 입·퇴장 시간을 확인할 수 있습니다.
         </p>
 
         <div className="table-wrapper">
           <table className="admin-table">
             <thead>
               <tr>
-                <th>이름</th>
                 <th>전화번호</th>
                 <th>반려견</th>
                 <th>등록번호</th>
@@ -178,12 +180,11 @@ function AdminPage() {
             <tbody>
               {records.length === 0 ? (
                 <tr>
-                  <td colSpan="8">출입 기록이 없습니다.</td>
+                  <td colSpan="7">출입 기록이 없습니다.</td>
                 </tr>
               ) : (
                 records.map((record) => (
                   <tr key={record.id}>
-                    <td>{record.name}</td>
                     <td>{record.phone}</td>
                     <td>{record.dogName}</td>
                     <td>{record.registrationNumber}</td>
