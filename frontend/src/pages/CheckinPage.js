@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiRequest } from '../services/api';
 import '../styles/Checkin.css';
 
 function CheckinPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const parks = [
     {
@@ -39,8 +40,13 @@ function CheckinPage() {
     },
   ];
 
+  const parkIdFromQr = searchParams.get('parkId');
+  const initialParkId = parks.some((park) => park.id === Number(parkIdFromQr))
+    ? parkIdFromQr
+    : '';
+
   const [dogs, setDogs] = useState([]);
-  const [selectedParkId, setSelectedParkId] = useState('');
+  const [selectedParkId, setSelectedParkId] = useState(initialParkId);
   const [selectedDogId, setSelectedDogId] = useState('');
   const [currentCheckin, setCurrentCheckin] = useState(null);
   const [error, setError] = useState('');
@@ -118,12 +124,23 @@ function CheckinPage() {
     }
   };
 
+  const selectedPark = parks.find(
+    (park) => park.id === Number(selectedParkId)
+  );
+
   return (
     <main className="checkin-container">
       <h1>체크인</h1>
       <p className="page-description">
         이용할 공원과 반려견을 선택한 뒤 체크인합니다.
       </p>
+
+      {parkIdFromQr && selectedPark && (
+        <section className="status-card active">
+          <h2>QR 체크인</h2>
+          <p>{selectedPark.name}가 자동 선택되었습니다.</p>
+        </section>
+      )}
 
       {currentCheckin && (
         <section className="status-card active">

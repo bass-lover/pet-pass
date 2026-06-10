@@ -62,6 +62,14 @@ function LoginPage() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
+      const redirectAfterLogin = localStorage.getItem('redirectAfterLogin');
+
+      if (redirectAfterLogin) {
+        localStorage.removeItem('redirectAfterLogin');
+        navigate(redirectAfterLogin);
+        return;
+      }
+
       navigate('/');
     } catch (error) {
       alert(error.message);
