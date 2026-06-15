@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = 'https://constrict-synopsis-slapstick.ngrok-free.dev';
 
 export async function apiRequest(path, options = {}) {
   const token = localStorage.getItem('token');
